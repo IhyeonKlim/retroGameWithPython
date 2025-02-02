@@ -61,3 +61,4 @@ while running:
 
 # 게임 종료
 pygame.quit()  # pygame을 종료하여 리소스를 정리합니다.
+
