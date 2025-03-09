@@ -106,14 +106,63 @@ class Crosshair:
         pygame.draw.line(screen, self.color, (position[0], position[1] - 20), (position[0], position[1] + 20), 2)
 
 
+class Enemy:
+    """적 객체 관리 클래스"""
+    def __init__(self):
+        self.size = 50
+        self.rect = pygame.Rect(
+            random.randint(0, WIDTH - self.size), random.randint(50, HEIGHT // 2 - self.size),
+            self.size, self.size
+        )
+        self.spawn_time = pygame.time.get_ticks()
+        self.lifetime = 3000
+        self.outer_circle_size = 100
+        self.inner_circle_size = 50
+        self.outer_circle_thickness = 4
+        self.inner_circle_thickness = 2
+
+    def is_expired(self, current_time):
+        return current_time - self.spawn_time > self.lifetime
+
+    def draw(self):
+        pygame.draw.rect(screen, RED, self.rect)
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - self.spawn_time
+        circle_progress = max(0, 1 - elapsed_time / self.lifetime)
+        outer_size = int(self.outer_circle_size * circle_progress)
+        pygame.draw.circle(screen, RED, self.rect.center, outer_size, self.outer_circle_thickness)
+        pygame.draw.circle(screen, YELLOW, self.rect.center, self.inner_circle_size, self.inner_circle_thickness)
+
+
+class SpecialEnemy(Enemy):
+    """스페셜 적 객체 관리 클래스"""
+    def __init__(self):
+        super().__init__()
+        self.lifetime = 1500
+        self.outer_circle_size = 120
+        self.inner_circle_size = 40
+
+    def draw(self):
+        pygame.draw.rect(screen, BLUE, self.rect)
+        current_time = pygame.time.get_ticks()
+        elapsed_time = current_time - self.spawn_time
+        circle_progress = max(0, 1 - elapsed_time / self.lifetime)
+        outer_size = int(self.outer_circle_size * circle_progress)
+        pygame.draw.circle(screen, BLUE, self.rect.center, outer_size, self.outer_circle_thickness)
+        pygame.draw.circle(screen, YELLOW, self.rect.center, self.inner_circle_size, self.inner_circle_thickness)
+
+
+font = pygame.font.Font(None, 36)  # 텍스트 표시용 기본 폰트
 # 기본 게임 루프
 gun = Gun()
 player = Player()
 crosshair = Crosshair()
-running = True
-font = pygame.font.Font(None, 36)  # 텍스트 표시용 기본 폰트
-
-# 피격 효과 관련 변수
+enemies = []
+special_enemies = []
+last_enemy_spawn_time = pygame.time.get_ticks()
+last_special_enemy_spawn_time = pygame.time.get_ticks()
+enemy_spawn_interval = 2000
+special_enemy_spawn_interval = 10000
 hit_effect_time = None
 hit_effect_duration = 300  # 피격 효과 지속 시간 (밀리초)
 
