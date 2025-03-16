@@ -154,6 +154,9 @@ class SpecialEnemy(Enemy):
         pygame.draw.circle(screen, YELLOW, self.rect.center, self.inner_circle_size, self.inner_circle_thickness)
 
 class Hostage:
+    """인질 객체 관리 클래스"""
+    TEXT_DURATION = 1000  # 텍스트 표시 지속 시간 (1초)
+
     def __init__(self):
         self.size = 50
         self.rect = pygame.Rect(
@@ -162,12 +165,44 @@ class Hostage:
         )
         self.spawn_time = pygame.time.get_ticks()
         self.lifetime = 3000  # 3초 동안 유지
+        self.hit_time = None  # 공격받은 시간
+        self.text = "Don't shoot me!"  # 기본 텍스트
+        self.text_color = GREEN  # 텍스트 색상
+        self.hit = False  # 공격받았는지 여부
 
     def is_expired(self):
+        """Hostage가 만료되었는지 확인"""
         return pygame.time.get_ticks() - self.spawn_time > self.lifetime
 
+    def register_hit(self):
+        """Hostage가 공격받았을 때의 처리"""
+        self.text = "Life -1"
+        self.text_color = RED
+        self.hit_time = pygame.time.get_ticks()
+        self.hit = True
+
     def draw(self):
+        """Hostage를 화면에 표시"""
+        # Hostage 사각형 그리기
         pygame.draw.rect(screen, GREEN, self.rect)
+
+        # 텍스트 표시
+        current_time = pygame.time.get_ticks()
+        if not self.hit and current_time - self.spawn_time > 500:
+            # 처음 0.5초 이후 텍스트 표시
+            self.text = "Don't shoot me!"
+            self.text_color = GREEN
+        elif self.hit and current_time - self.hit_time > self.TEXT_DURATION:
+            # 공격받은 경우, 일정 시간 후 텍스트 제거
+            self.text = ""
+
+        if self.text:
+            font = pygame.font.Font(None, 24)
+            text_surface = font.render(self.text, True, self.text_color)
+            text_rect = text_surface.get_rect(center=(self.rect.centerx, self.rect.centery - 30))
+            screen.blit(text_surface, text_rect)
+
+
 
 
 # 기본 게임 루프
@@ -205,14 +240,24 @@ while running:
                     if special_enemy.rect.collidepoint(mouse_x, mouse_y):
                         special_enemies.remove(special_enemy)
                         player.update_score(50)
-                for hostage in hostages[:]:
+            elif event.button == 3:  # 오른쪽 클릭
+                gun.quick_reload()
+        # Hostage 업데이트 및 상호작용
+        for hostage in hostages[:]:
+            if hostage.is_expired():
+                hostages.remove(hostage)
+            else:
+                if event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:
                     if hostage.rect.collidepoint(mouse_x, mouse_y):
-                        hostages.remove(hostage)
+                        hostage.register_hit()  # Hostage가 공격받음
                         player.update_score(-50)
                         if not player.lose_life():
                             hit_effect_time = current_time
-            elif event.button == 3:  # 오른쪽 클릭
-                gun.quick_reload()
+                        delay = current_time + 300
+                        if delay == current_time :
+                            hostages.remove(hostage)
+                hostage.draw()
+
 
 
 
@@ -256,7 +301,7 @@ while running:
 
     # 인질 업데이트 및 그리기
     for hostage in hostages[:]:
-        if hostage.is_expired(current_time):
+        if hostage.is_expired():
             hostages.remove(hostage)
         else:
             hostage.draw()
