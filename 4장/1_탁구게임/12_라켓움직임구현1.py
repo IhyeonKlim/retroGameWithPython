@@ -65,17 +65,14 @@ player1 = Player(play_area_x + 20, play_area_y + play_area_height // 2)
 # 라켓의 Y 위치를 play_area의 중앙에 맞춤
 player2 = Player(play_area_x + play_area_width - 20, play_area_y + play_area_height // 2)
 
-# 공
+# 공 클래스 정의
 class Ball:
     def __init__(self, x, y):
         self.rect = Rect(0, 0, 50, 50)  # 공의 크기 설정 (0.0 위치에 가로 50, 세로 50)
         self.rect.centerx = x  # 사각형 중심의 X 좌표 설정
         self.rect.centery = y  # 사각형 중심의 Y 좌표 설정
-
-#ball
+# 공 객체 생성
 ball = Ball(play_area_x + play_area_width // 2, play_area_y + play_area_height // 2)
-
-
 
 # 게임 루프
 running = True
@@ -95,7 +92,7 @@ while running:
             # 화살표 아래를 누르면 아래로 내려가는 메서드를 호출
             elif event.key == pygame.K_DOWN:
                 player1.move_down()
-                # 화면을 검정색으로 채움 (전체 배경)
+    # 화면을 검정색으로 채움 (전체 배경)
     screen.fill(BLACK)
 
     # 플레이 구역 바깥에 테두리 그리기 (테두리가 안쪽으로 침범되지 않도록)
