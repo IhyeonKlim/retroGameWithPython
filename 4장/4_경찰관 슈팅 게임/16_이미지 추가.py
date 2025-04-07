@@ -1,6 +1,6 @@
 import pygame
-import random
 import time
+import random
 import os
 
 # Pygame 초기화
@@ -41,7 +41,7 @@ class Gun:
         #  머즐 플래시 관련 변수
         self.muzzle_flash_image = None
         self.muzzle_flash_time = None  # 머즐 플래시 활성화 시간
-        self.muzzle_flash_duration = 100  # 100ms 동안만 표시
+        self.muzzle_flash_duration = 70  # 70ms 동안만 표시
 
         # 머즐 플래시 이미지 로드
         muzzle_flash_path = "hit_effect.png"  # 피격 효과 이미지 재사용
@@ -52,7 +52,6 @@ class Gun:
             print(f"Warning: '{muzzle_flash_path}' not found. Muzzle flash disabled.")
 
     def shoot(self):
-        """총 발사"""
         if self.bullets > 0 and not self.isFullReloading:
             self.bullets -= 1
             self.last_shot_time = time.time()
@@ -62,7 +61,6 @@ class Gun:
 
             return True
         else:
-            print("Out of bullets!")
             return False
 
     def draw_muzzle_flash(self, position):
@@ -76,6 +74,7 @@ class Gun:
                 self.muzzle_flash_time = None  # 일정 시간이 지나면 플래시 제거
 
     def reload(self):
+        """자동 장전"""
         if self.bullets < self.MAX_BULLETS:
             current_time = time.time()
             if self.last_reload_time is None or current_time - self.last_reload_time >= self.reload_speed:
@@ -113,6 +112,7 @@ class Gun:
             y = HEIGHT - bullet_height - 20  #  위치 변경 (기존보다 10px 아래)
             pygame.draw.rect(screen, YELLOW, (x, y, bullet_width, bullet_height))
 
+
 class Player:
     """ 플레이어 상태 변경: 점수 시스템 및 생명 시스템 조정"""
     def __init__(self):
@@ -121,10 +121,11 @@ class Player:
         self.font = pygame.font.Font(None, 36)
 
     def update_score(self, amount):
+        """점수 증가"""
         self.score += amount
 
     def lose_life(self):
-        """ 생명 감소 방식 변경"""
+        """생명 감소"""
         self.lives -= 1
         if self.lives <= 0:
             print(f"Game Over! Final Score: {self.score}")
@@ -132,6 +133,7 @@ class Player:
         return True
 
     def draw(self):
+        """화면에 점수와 생명 표시"""
         score_text = self.font.render(f"Score: {self.score}", True, WHITE)
         lives_text = self.font.render(f"Lives: {self.lives}", True, WHITE)
         screen.blit(score_text, (10, 10))
@@ -183,6 +185,11 @@ class Enemy:
         """ 제거 조건 변경: 더 빠르게 제거됨"""
         return current_time - self.spawn_time > self.ATTACK_TIME
 
+    def attack_success(self, current_time):
+        """동심원이 완전히 줄어들면 공격 성공"""
+        elapsed_time = current_time - self.spawn_time
+        return elapsed_time >= self.lifetime
+
     def draw(self):
         """적을 화면에 그리기"""
         if self.image:
@@ -190,10 +197,13 @@ class Enemy:
         else:
             pygame.draw.rect(screen, RED, self.rect)  # 기본 빨간 사각형
 
+        # 동심원의 크기 업데이트
         current_time = pygame.time.get_ticks()
         elapsed_time = current_time - self.spawn_time
         circle_progress = max(0, 1 - elapsed_time / self.lifetime)
         outer_size = int(self.outer_circle_size * circle_progress)
+
+        # 동심원 그리기
         pygame.draw.circle(screen, RED, self.rect.center, outer_size, self.outer_circle_thickness)
         pygame.draw.circle(screen, YELLOW, self.rect.center, self.inner_circle_size, self.inner_circle_thickness)
 
@@ -231,6 +241,7 @@ class SpecialEnemy(Enemy):
 
 class Hostage:
     """인질 객체 관리 클래스"""
+    HOSTAGE_LIFETIME = 3000
     TEXT_DURATION = 1000  # 텍스트 표시 지속 시간 (1초)
 
     def __init__(self):
@@ -240,7 +251,6 @@ class Hostage:
             self.size, self.size
         )
         self.spawn_time = pygame.time.get_ticks()
-        self.lifetime = 3000  # 3초 동안 유지
         self.hit_time = None  # 공격받은 시간
         self.text = "Don't shoot me!"  # 기본 텍스트
         self.text_color = GREEN  # 텍스트 색상
@@ -255,16 +265,9 @@ class Hostage:
         else:
             print(f"Warning: '{image_path}' not found. Using default color.")
 
-    def is_expired(self):
-        """Hostage가 만료되었는지 확인"""
-        return pygame.time.get_ticks() - self.spawn_time > self.lifetime
-
-    def register_hit(self):
-        """Hostage가 공격받았을 때의 처리"""
-        self.text = "Life -1"
-        self.text_color = RED
-        self.hit_time = pygame.time.get_ticks()
-        self.hit = True
+    def is_expired(self, current_time):
+        """인질 유지 시간이 지나면 제거"""
+        return current_time - self.spawn_time > self.HOSTAGE_LIFETIME
 
     def draw(self):
         """인질을 화면에 그리기"""
@@ -279,15 +282,15 @@ class Hostage:
             # 처음 0.5초 이후 텍스트 표시
             self.text = "Don't shoot me!"
             self.text_color = GREEN
-        elif self.hit and current_time - self.hit_time > self.TEXT_DURATION:
+        elif self.hit:
             # 공격받은 경우, 일정 시간 후 텍스트 제거
-            self.text = ""
+            self.text = "Noooooo!!!!"
+            self.text_color = RED
 
-        if self.text:
-            font = pygame.font.Font(None, 24)
-            text_surface = font.render(self.text, True, self.text_color)
-            text_rect = text_surface.get_rect(center=(self.rect.centerx, self.rect.centery - 30))
-            screen.blit(text_surface, text_rect)
+        font = pygame.font.Font(None, 24)
+        text_surface = font.render(self.text, True, self.text_color)
+        text_rect = text_surface.get_rect(center=(self.rect.centerx, self.rect.centery - 30))
+        screen.blit(text_surface, text_rect)
 
 class Game:
     """게임 관리 클래스"""
@@ -381,12 +384,10 @@ class Game:
                         self.special_enemy_spawn_interval = self.special_enemy_spawn_interval - 500
             for hostage in self.hostages[:]:
                 if hostage.rect.collidepoint(mouse_x, mouse_y):
-                    hostage.register_hit()
+                    hostage.hit = True
                     self.player.update_score(-50)
-                    if not self.player.lose_life():
-                        self.hit_effect_time = pygame.time.get_ticks()
-                    # 1초 동안 텍스트 표시 후 제거
-                    pygame.time.set_timer(pygame.USEREVENT, 1000)
+                    self.player.lose_life()
+
 
     def update_objects(self):
         """게임 오브젝트 업데이트"""
@@ -402,11 +403,6 @@ class Game:
         if current_time - self.last_special_enemy_spawn_time > self.special_enemy_spawn_interval:
             self.spawn_special_enemy()
             self.last_special_enemy_spawn_time = current_time
-
-        # 인질 스폰 관리
-        if current_time - self.last_hostage_spawn_time > self.hostage_spawn_interval:
-            self.spawn_hostage()
-            self.last_hostage_spawn_time = current_time
 
         # 적 제거
         for enemy in self.enemies[:]:
@@ -424,11 +420,17 @@ class Game:
 
         # 인질 제거
         for hostage in self.hostages[:]:
-            if hostage.is_expired():
+            if hostage.is_expired(current_time):
                 self.hostages.remove(hostage)
+
+        # 인질 스폰 관리
+        if current_time - self.last_hostage_spawn_time > self.hostage_spawn_interval:
+            self.spawn_hostage()
+            self.last_hostage_spawn_time = current_time
 
         # 게임오버 여부 확인
         self.check_game_over()
+
 
     def draw_objects(self):
         """화면에 모든 오브젝트를 그림"""
@@ -514,7 +516,6 @@ class Game:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.running = False
-
                 elif event.type == pygame.MOUSEBUTTONDOWN:
                     if self.state == "intro":
                         self.state = "playing"
@@ -540,7 +541,6 @@ class Game:
                 self.show_game_over()
 
             clock.tick(FPS)
-
 
 # 게임 실행
 if __name__ == "__main__":

@@ -138,9 +138,13 @@ while running:
                     screen_width=SCREEN_WIDTH, y=-80, count=5, margin=20, stage=stage,
                     image_path="normal_monster.png", special_image_path="special_monster.png"
                 )
-                player = Player(  # 플레이어 객체 초기화
-                    x=SCREEN_WIDTH // 2 - 25, y=SCREEN_HEIGHT - 130,
-                    width=50, height=50, speed=5, color=BLUE
+                player = Player(
+                    x=SCREEN_WIDTH // 2 - 25,  # 화면 중앙에 위치
+                    y=SCREEN_HEIGHT - 130,  # 화면 아래쪽에 위치
+                    width=100, height=100,  # 플레이어의 크기 설정
+                    speed=5,  # 이동 속도
+                    color=BLUE,  # 기본 색상
+                    image_path="player_image.png"  # 플레이어 이미지 경로
                 )
                 ticks_manager.reset_ticks()  # 시간 초기화
                 last_distance_update = ticks_manager.get_ticks()  # 거리 업데이트 초기화

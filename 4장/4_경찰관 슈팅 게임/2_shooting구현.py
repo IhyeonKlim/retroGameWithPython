@@ -26,7 +26,6 @@ class Gun:
         self.reload_speed = 0.7  # 초당 장전 속도
         self.last_reload_time = None  # 마지막 장전 시간
 
-
     def shoot(self):
         """총 발사"""
         if self.bullets > 0:

@@ -23,19 +23,21 @@ clock = pygame.time.Clock()
 class Gun:
     """플레이어의 총 관리 클래스"""
     def __init__(self):
-        self.MAX_BULLETS = 7
-        self.bullets = self.MAX_BULLETS
-        self.reload_speed = 0.7
-        self.last_reload_time = None
+        self.MAX_BULLETS = 7  # 최대 총알 수
+        self.bullets = self.MAX_BULLETS  # 현재 총알 수
+        self.reload_speed = 0.7  # 초당 장전 속도
+        self.last_reload_time = None  # 마지막 장전 시간
 
     def shoot(self):
+        """총 발사"""
         if self.bullets > 0:
-            self.bullets -= 1
-            print("Shot fired!")
+            self.bullets -= 1  # 총알 수 감소
+            print("Shot fired!")  # 발사 확인 메시지
         else:
-            print("Out of bullets!")
+            print("Out of bullets!")  # 총알 부족 메시지
 
     def reload(self):
+        """자동 장전"""
         if self.bullets < self.MAX_BULLETS:
             current_time = time.time()
             if self.last_reload_time is None or current_time - self.last_reload_time >= self.reload_speed:
@@ -43,6 +45,7 @@ class Gun:
                 self.last_reload_time = current_time
 
     def draw_bullets(self):
+        """총알 UI를 화면에 그리기"""
         bullet_width, bullet_height = 20, 10
         for i in range(self.bullets):
             x = WIDTH - (bullet_width + 5) * (i + 1)
@@ -55,12 +58,14 @@ class Player:
     def __init__(self):
         self.score = 0
         self.lives = 3
-        self.font = pygame.font.Font(None, 36)
+        self.font = pygame.font.Font(None, 36)  # 기본 폰트 크기 36
 
     def update_score(self, amount):
+        """점수 증가"""
         self.score += amount
 
     def lose_life(self):
+        """생명 감소"""
         self.lives -= 1
         if self.lives <= 0:
             print("Game Over!")
@@ -68,6 +73,7 @@ class Player:
         return True
 
     def draw(self):
+        """화면에 점수와 생명 표시"""
         score_text = self.font.render(f"Score: {self.score}", True, WHITE)
         lives_text = self.font.render(f"Lives: {self.lives}", True, WHITE)
         screen.blit(score_text, (10, 10))
@@ -96,7 +102,7 @@ while running:
             running = False
         elif event.type == pygame.MOUSEBUTTONDOWN and event.button == 1:  # 왼쪽 클릭
             gun.shoot()
-            player.update_score(10)
+            player.update_score(10)  # 클릭 시 점수 증가
 
     # 화면 검은색으로 채우기
     screen.fill(BLACK)

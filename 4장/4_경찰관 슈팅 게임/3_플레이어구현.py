@@ -30,10 +30,10 @@ class Gun:
     def shoot(self):
         """총 발사"""
         if self.bullets > 0:
-            self.bullets -= 1
-            print("Shot fired!")
+            self.bullets -= 1  # 총알 수 감소
+            print("Shot fired!")  # 발사 확인 메시지
         else:
-            print("Out of bullets!")
+            print("Out of bullets!")  # 총알 부족 메시지
 
     def reload(self):
         """자동 장전"""

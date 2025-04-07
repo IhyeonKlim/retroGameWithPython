@@ -18,8 +18,8 @@ block_color = (200, 50, 50)  # 붉은색 블록
 # 패들 설정
 paddle_width = 100
 paddle_height = 15
-paddle_x = (screen_width - paddle_width) / 2
-paddle_y = screen_height - 40
+paddle_x = (screen_width - paddle_width) / 2  # 화면 중앙에 위치
+paddle_y = screen_height - 40  # 화면 하단에서 40 픽셀 위
 paddle_speed = 7
 
 # 블록 설정
