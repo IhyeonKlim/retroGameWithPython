@@ -132,20 +132,20 @@ class Monster:
                             monsters.remove(monster)
 
                         # 100% 확률로 코인 생성
-                        if random.randint(1, 100) <= 50:  # 코인 생성 확률 100%
+                        if random.randint(1, 100) <= 50:
                             coin_list.append(Coin.create_random_coin(monster.x + monster.width // 2, monster.y))
 
-                        # 하이퍼 플라이트
-                        if random.randint(1, 100) <= 100:
-                             item_list.append(Item.create_hyper_flight_item(monster.x + monster.width // 2, monster.y))
-
                         # 더블샷
-                        if random.randint(1, 100) <= 10:
+                        if random.randint(1, 100) <= 20:
                             item_list.append(Item.create_bullet_item(monster.x + monster.width // 2, monster.y))
 
                         # 자석 아이템 생성
-                        if random.randint(1, 100) <= 10:  # 5% 확률
+                        if random.randint(1, 100) <= 15:
                             item_list.append(Item.create_magnet_item(monster.x + monster.width // 2, monster.y))
+
+                        # 하이퍼 플라이트
+                        if random.randint(1, 100) <= 10:
+                            item_list.append(Item.create_hyper_flight_item(monster.x + monster.width // 2, monster.y))
 
                     bullets.remove(bullet)  # 탄환 제거
                     break
